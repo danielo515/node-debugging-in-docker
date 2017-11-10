@@ -2,7 +2,7 @@
 # node-debugging-in-docker          #
 ################################
 
-FROM node:8
+FROM node:7
 
 LABEL maintainers.danielo="Daniel Rodríguez Rivero <rdanielo@gmail.com>"
 
