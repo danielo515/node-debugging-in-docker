@@ -5,7 +5,7 @@
   "scripts": {
     "build": "cross-var docker build . -t $npm_package_config_imageName:$npm_package_version -t $npm_package_config_imageName:latest",
     "docker-push": "cross-var docker push $npm_package_config_imageName:$npm_package_version && docker push $npm_package_config_imageName:latest",
-    "docker-start": "cross-var docker run --it -rm -p 3000:3000 $npm_package_config_imageName:latest",
+    "docker-start": "cross-var docker run -it --rm -p 3000:3000 $npm_package_config_imageName:latest",
     "deploy": "npm run build && npm run docker-push",
     "test": "lab -a code -t 100 -v",
     "test-cov-html": "lab -a code -r html -o coverage.html",
