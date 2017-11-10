@@ -1,6 +1,6 @@
 {
   "name": "node-debugging-in-docker",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "An example service embeded into a docker container to make debugging practices",
   "scripts": {
     "build": "cross-var docker build . -t $npm_package_config_imageName:$npm_package_version -t $npm_package_config_imageName:latest",

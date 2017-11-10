@@ -2,7 +2,7 @@
 # node-debugging-in-docker          #
 ################################
 
-FROM node:8
+FROM node:7
 
 LABEL maintainers.danielo="Daniel Rodríguez Rivero <rdanielo@gmail.com>"
 
@@ -35,5 +35,5 @@ EXPOSE 5858
 ENV DEBUG *
 ENV NODE_ENV production
 
-CMD [ "node", "--inspect", "lib/start.js" ]
+CMD [ "node", "--inspect=0.0.0.0:5858", "lib/start.js" ]
 
