@@ -29,10 +29,11 @@ RUN npm install --production && \
 ADD . .
 
 EXPOSE 3000
+EXPOSE 5858
 
 # Log debugging variables
 ENV DEBUG *
 ENV NODE_ENV production
 
-CMD [ "npm", "start" ]
+CMD [ "node", "--inspect", "lib/start.js" ]
 
