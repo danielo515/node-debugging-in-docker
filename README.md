@@ -29,9 +29,10 @@ Una vez se hayan arreglado los posibles fallos en la imagen de docker, es necesa
 * `npm test` Run tests 
 * `git checkout master` para volver a las instrucciones básicas 
 * `git checkout 01-basic-way` para ir a la primera lección
-* `git checkout 02-bug-on-startup` para ir a la segunda lección
-* `git checkout 03-configurable-debugging` para ir a la tercera lección
-* `git checkout 04-already-running-container` para ir a la cuarta lección
+* `git checkout 02-debugging-with-vsc` para ir a la segunda lección
+* `git checkout 03-bug-on-startup` para ir a la tercera lección
+* `git checkout 04-configurable-debugging` para ir a la cuarta lección
+* `git checkout 05-already-running-container` para ir a la quinta lección
 * With the server running, open `http://localhost:3000/version` to see the version of your package
 * With the server running, open `http://localhost:3000/documentation` to see the documentation of your API
 
