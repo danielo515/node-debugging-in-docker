@@ -1,0 +1,11 @@
+{
+    "extends": "hapi",
+    "parserOptions": {
+        "ecmaVersion": 8
+    },
+    "rules": {
+        "hapi/no-arrowception": [
+            0
+        ]
+    }
+}

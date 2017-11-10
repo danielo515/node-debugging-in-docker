@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+    node-docker:
+        container_name: node-debugging-in-docker
+        image: node-debugging-in-docker:latest
+        ports:
+            - "3000:3000"
