@@ -3,35 +3,16 @@
 #### Created by: Danielo Rodríguez Rivero
 #### Keywords: rest,microservice, tutorial
 
-# Lección 01 - Basic way
+# Lección 02 - debugging with VSCode
 
-En esta lección se ha modificado la imagen de docker para que sea posible adjuntar un proceso de forma externa.
-Este método require cambiar la imagen de docker cada vez que se quiere añadir la posibilidad de hacer debugging y de nuevo editarla antes de subirla a producción.
-Otra alternativa sería dejar siempre activado el debugging y solo conectarse al mismo en caso de ser necesario, pero esto también se considera una mala práctica.
+En esta lección se ha modificado la imagen de docker para utilizar la versión 8 de node, la cual incorpora mejoras en el rendimiento y souciona algunos problemas de seguridad que se encontraban en node 7.
+Lamentablemente junto con el cambio de versión también vienen otros cambios. Tal y como anunciaba el mensaje de warning, la funcionalidad de `--inspect` ha cambiado ligeramente, y ya no nos proporciona una URL sencilla para copiar-pegar en nuestro navegador. 
+No obstante, esto no es un problema ya que tenemos a nuestra disposición el debugger de VSCode, que es el que utilizaremos para conectar al debugger de forma remota.
+En esta lección se incluye una configuración de VSCode para poder conectarse al contenedor, pero puede que no funcione correctamente. Es tarea del alumno solucionarlo de ser así.
 
-Debéis construir de nuevo la imagen de docker para que los cambios tengan efecto.
-Después podéis ejecutar el mismo comando que en la lección anterior para probar la nueva imagen.
-
-Si lo habéis hecho de forma correcta, deberíais ver una referencia en el log del contenedor, que además os proporciona una URL a la que conectarse para hacer debugging.
-Esto es posible gracias a que se utiliza el método `inspect` en lugar del antíguo parámetro `-debug` , el cual está deprecado y no debería ser usado.
-
-Puede que alguno de los parámetros de la imagen de docker no sean del todo correctos. A pesar de ello, en el propio dockerfile hay bastantes pistas para deducir que podría
-estar fallando. Es tarea del alumno solucionarlos de ser así.
-
-Una vez se hayan arreglado los posibles fallos en la imagen de docker, es necesario volver a construirla y ejecutarla.
-
-# Solución
-
-El fallo estaba en las opciones del método **inspect**. Por defecto el método **inspect** tan solo está disponible para procesos corriendo **en la misma máquina**.
-Este hecho juegan en nuestra contra cuando lo que queremos es hacer debugging en un contenedor de docker el cual que se encuentra aislado en su propio espacio como si de otra máquina se tratase (de hecho en windows se trata de una máquina virtual, por lo que es literalmente así).
-
-Para solucionarlo basta con parametrizar **inspect** con las siguientes opciones:
-* `--inspect=0.0.0.0:5858`.
-  * `0.0.0.0` indica a node que cualquiera puede conectarse a la consola de debug. 
-  * `:5858` le dice a node en que puerto escuchar . Hemos escogido este puerto para demostrar que se puede utilzar uno diferente al estándar que es **9229** 
-* Ahora deberemos volver a construir la imagen con `npm run build` y volver a levantarla con `npm run docker-start`.
-* Si todo va bien ahora sí deberías poder conectarte a la url que aparece en el log mediante tu navegador Chrome.
-  * **NOTA**: puede que en windows debas ajustar la url para apuntar a la ip de la máquina de docker debido a que docker se ejecuta dentro de una máquina virtual.
+* Debéis construir de nuevo la imagen de docker para que los cambios tengan efecto.
+* Después podéis ejecutar el mismo comando que en la lección anterior para probar la nueva imagen.
+* Si lo habéis hecho de forma correcta, deberíais ver en el log del contenedor que el debugger está a la escucha y deberíais poder conectar mediante el debugger de VSCode.
 
 ## Commands reference
 

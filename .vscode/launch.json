@@ -10,6 +10,24 @@
             "name": "debug",
             "program": "${workspaceFolder}/lib/start.js",
             "restart": true
+        },
+        {
+            "type": "node",
+            "request": "attach",
+            "name": "Docker: Attach to Node Windows",
+            "port": 5858,
+            "address": "192.168.99.100",
+            "localRoot": "${workspaceFolder}",
+            "protocol": "inspector"
+        },
+        {
+            "type": "node",
+            "request": "attach",
+            "name": "Docker: Attach to Node MAC/Linux",
+            "port": 5858,
+            "address": "localhost",
+            "localRoot": "${workspaceFolder}",
+            "protocol": "inspector"
         }
     ]
 }
