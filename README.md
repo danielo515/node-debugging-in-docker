@@ -14,6 +14,31 @@ En esta lección se incluye una configuración de VSCode para poder conectarse a
 * Después podéis ejecutar el mismo comando que en la lección anterior para probar la nueva imagen.
 * Si lo habéis hecho de forma correcta, deberíais ver en el log del contenedor que el debugger está a la escucha y deberíais poder conectar mediante el debugger de VSCode.
 
+# Solución
+
+El problema en este caso residía en la configuración de visual studio code. Faltaba la propiedad `remoteRoot`, la cual hemos omitido deshonestamente para generar un poco de diversión al lector.
+El propósito de esta propiedad es indicarle a VSCode dónde se encuentran los archivos sobre los que estamos haciendo debugging en el equipo remoto.
+Recordemos que, a efectos prácticos, cualquier contenedor de docker debe ser considerado como un equipo/ordenador/host distinto al nuestro.
+VSCode sabe dónde están nuestros archivos, pero no tiene ni idea de como mapear lo que el debugger remoto le está reportando puesto que lo hará con el path en el sistema de archivos remoto.
+Esta propiedad cambiará de una imagen a otra, y es necesario conocer bien cómo la imagen está construida y dónde se están emplazando dentro de la imagen.
+
+Por ejemplo, en nuestro caso podemos referirnos a nuestros path local mediante la propiedad especial `${workspaceFolder}`, por lo que tendremos la configuración local de este modo:
+`"localRoot": "${workspaceFolder}"`.
+Para saber como configurar correctamente la propiedad `remoteRoot` debemos analizar la imagen de docker, en particular la siguientes líneas
+
+```
+ENV USER dockerfileUser
+WORKDIR /home/$USER
+```
+
+Podemos ver que los archivos se están copiando en `/home/dockerfileUser`, por lo tanto esta es la información que le debemos dar a VSCode. 
+
+Si te resulta más sencillo piensa que el debugger remoto le dirá a VSCode
+> Hay un punto de interrupción en el archivo `/home/dockerfileUser/lib/index.js` en la línea 50
+
+Entonces VSCode deberá ser capaz de traducir ese path a `${workspaceFolder}/lib/index.js` o probablemente a `/Users/home/username/repo-name/lib/index.js`.
+
+
 ## Commands reference
 
 * `npm run build` en cualquiera de las ramas construye la imagen de docker
