@@ -35,5 +35,5 @@ EXPOSE 5858
 ENV DEBUG *
 ENV NODE_ENV production
 
-CMD [ "node", "--inspect=0.0.0.0:5858", "lib/start.js" ]
+CMD [ "node", "--inspect-brk=0.0.0.0:5858", "./lib/start.js" ]
 

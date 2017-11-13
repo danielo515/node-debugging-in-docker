@@ -21,6 +21,13 @@ Es tarea del alumno configurar `node.js` para poder hacer debugging antes de que
 * Después podéis ejecutar el mismo comando que en la lección anterior para probar la nueva imagen.
 * Si lo habéis hecho de forma correcta, deberíais ver en el log del contenedor que el debugger está a la escucha y deberíais poder conectar mediante el debugger de VSCode.
 
+# Solución
+
+La solución al ejercicio era tan simple como utilizar `--inspect-brk` en lugar de simplemente `--inspect`.
+La diferencia reside en que `--inspect` habilita el protocolo de debug y se pone a la escucha, 
+mientras que `--inspect-brk` habilita el protocolo de debug, **para la ejecución del programa antes de la primera línea** y se pone a la escucha.<br>
+Esta pequeña diferencia nos da la oportunidad de conectar el debugger antes de que ningún error pueda tener lugar y encontrarlos de forma efectiva.
+
 ## Commands reference
 
 * `npm run build` en cualquiera de las ramas construye la imagen de docker
