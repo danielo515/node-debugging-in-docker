@@ -3,41 +3,23 @@
 #### Created by: Danielo Rodríguez Rivero
 #### Keywords: rest,microservice, tutorial
 
-# Lección 02 - debugging with VSCode
+# Lección 03 - Bug on startup
 
-En esta lección se ha modificado la imagen de docker para utilizar la versión 8 de node, la cual incorpora mejoras en el rendimiento y souciona algunos problemas de seguridad que se encontraban en node 7.
-Lamentablemente junto con el cambio de versión también vienen otros cambios. Tal y como anunciaba el mensaje de warning, la funcionalidad de `--inspect` ha cambiado ligeramente, y ya no nos proporciona una URL sencilla para copiar-pegar en nuestro navegador. 
-No obstante, esto no es un problema ya que tenemos a nuestra disposición el debugger de VSCode, que es el que utilizaremos para conectar al debugger de forma remota.
-En esta lección se incluye una configuración de VSCode para poder conectarse al contenedor, pero puede que no funcione correctamente. Es tarea del alumno solucionarlo de ser así.
+Hasta ahora hemos estado levantando nuestra imagen de debugging, hemos esperado a que se levantase el backend y una vez levantado nos hemos conectado al debugger mediante distintas técnicas (Chrome, y VSCode) y hemos empezado a hacer debugging. <br>
+Pero... ¿Qué ocurre cuando el backend no se levanta correctamente? ¿Y si ocurre un error inesperado que tumba el backend antes de que podamos siquiera conectarnos al debugger ?
 
-* Debéis construir de nuevo la imagen de docker para que los cambios tengan efecto.
+En esta lección se han introducido algunos bugs que impiden que el servicio se levante correctamente, por lo que es posible que no tengáis tiempo de conectar al debugger para ver dónde está el fallo. 
+Reglas a cumplir:
+
+* Se deberá encontrar el error haciendo debugging y corregirlo.
+* No está permitido utilizar técnicas de debugging arcaicas como múltiples console.log en varios sitios
+* No se debe encontrar el error mirando todos los archivos fuente no con ayuda de linters
+
+Es tarea del alumno configurar `node.js` para poder hacer debugging antes de que el error impida el inicio del servicio.
+
+* Debéis construir de nuevo la imagen de docker para que los cambios tengan efecto (tanto al principio del ejercicio como después de aplicar vuestros cambios).
 * Después podéis ejecutar el mismo comando que en la lección anterior para probar la nueva imagen.
 * Si lo habéis hecho de forma correcta, deberíais ver en el log del contenedor que el debugger está a la escucha y deberíais poder conectar mediante el debugger de VSCode.
-
-# Solución
-
-El problema en este caso residía en la configuración de visual studio code. Faltaba la propiedad `remoteRoot`, la cual hemos omitido deshonestamente para generar un poco de diversión al lector.
-El propósito de esta propiedad es indicarle a VSCode dónde se encuentran los archivos sobre los que estamos haciendo debugging en el equipo remoto.
-Recordemos que, a efectos prácticos, cualquier contenedor de docker debe ser considerado como un equipo/ordenador/host distinto al nuestro.
-VSCode sabe dónde están nuestros archivos, pero no tiene ni idea de como mapear lo que el debugger remoto le está reportando puesto que lo hará con el path en el sistema de archivos remoto.
-Esta propiedad cambiará de una imagen a otra, y es necesario conocer bien cómo la imagen está construida y dónde se están emplazando dentro de la imagen.
-
-Por ejemplo, en nuestro caso podemos referirnos a nuestros path local mediante la propiedad especial `${workspaceFolder}`, por lo que tendremos la configuración local de este modo:
-`"localRoot": "${workspaceFolder}"`.
-Para saber como configurar correctamente la propiedad `remoteRoot` debemos analizar la imagen de docker, en particular la siguientes líneas
-
-```
-ENV USER dockerfileUser
-WORKDIR /home/$USER
-```
-
-Podemos ver que los archivos se están copiando en `/home/dockerfileUser`, por lo tanto esta es la información que le debemos dar a VSCode. 
-
-Si te resulta más sencillo piensa que el debugger remoto le dirá a VSCode
-> Hay un punto de interrupción en el archivo `/home/dockerfileUser/lib/index.js` en la línea 50
-
-Entonces VSCode deberá ser capaz de traducir ese path a `${workspaceFolder}/lib/index.js` o probablemente a `/Users/home/username/repo-name/lib/index.js`.
-
 
 ## Commands reference
 

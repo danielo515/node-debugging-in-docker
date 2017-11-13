@@ -6,6 +6,10 @@
     "rules": {
         "hapi/no-arrowception": [
             0
-        ]
+        ],
+        "handle-callback-err": [0],
+        "no-undef":[0],
+        "no-confusing-arrow": [0]
+
     }
 }
