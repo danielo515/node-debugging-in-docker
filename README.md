@@ -23,6 +23,31 @@ La tarea consistirá en escribir un script llamado `CMD.sh` en la raíz del repo
 * Después podéis ejecutar el mismo comando que en la lección anterior para probar la nueva imagen.
 * Si lo habéis hecho de forma correcta, deberíais ser capaces de arrancar un contenedor con el debugger activado o no cambiando los parámetros que se le pasen a la imagen.
 
+# Solución
+
+Igual que con cualquier otro problema de programación este ejercicio admitía varias soluciones.
+A continuación listo algunas posibles soluciones, todas ellas implican la ejecución de un script como punto de entrada a la imagen.
+
+* Script que en función de una variable de entorno ejecute (o no) nuestra aplicación en modo debug
+  * Se ejecutará a través de la opción `CMD` de la imagen de docker
+  * Este es el método que hemos elegido para resolverlo
+  * La ventajas de esta solución son:
+    * Proveer variables de entorno a un contenedor es muy fácil
+    * La mayoría de orquestadores (ej rancher) admiten configurar variables de entorno de forma sencilla
+    * Es muy fácil saltarse la ejecución del `CMD` con aquello que queramos
+* Script que en base a un parámetro ( o varios ) ejecute nuestra aplicación en modo debug
+    * Se puede lanzar mediante la instrucción `CMD` del Dockerfile
+    * La desventajas de este método son:
+      * es bastante más complicado pasar parámetros a una imagen
+      * corremos el riesgo de sobre-escribir el comando a ejecutar en lugar de pasarle un parámetro
+      * no sabemos si los distintos orquestadores admiten pasar parámetros a un contenedor
+* Script configurado como `ENTRYPOINT` que admita tanto parámetros como otros comandos a ejecutar
+    * Esta solución nos da control total de como se comporta nuestra imagen y es muy flexible
+    * No obstante, tiene varias desventajas a tener en cuenta:
+      * La complejidad del script es muy alta, puesto que tenemos que tener en cuenta muchas más opciones y posibilidades que nos pueden llegar como parámetro o variables de entorno
+      * Lo que se especifique en `CMD` es fácil de sobre-escribir en tiempo de ejecución, el `ENTRYPOINT` no
+      * Tenemos que calcular muy bien y de antemano todas las opciones que queramos permitir 
+
 
 ## Commands reference
 
