@@ -3,40 +3,25 @@
 #### Created by: Danielo Rodríguez Rivero
 #### Keywords: rest,microservice, tutorial
 
-# Lección 02 - debugging with VSCode
+# Lección 04 - Configurable debugging
 
-En esta lección se ha modificado la imagen de docker para utilizar la versión 8 de node, la cual incorpora mejoras en el rendimiento y souciona algunos problemas de seguridad que se encontraban en node 7.
-Lamentablemente junto con el cambio de versión también vienen otros cambios. Tal y como anunciaba el mensaje de warning, la funcionalidad de `--inspect` ha cambiado ligeramente, y ya no nos proporciona una URL sencilla para copiar-pegar en nuestro navegador. 
-No obstante, esto no es un problema ya que tenemos a nuestra disposición el debugger de VSCode, que es el que utilizaremos para conectar al debugger de forma remota.
-En esta lección se incluye una configuración de VSCode para poder conectarse al contenedor, pero puede que no funcione correctamente. Es tarea del alumno solucionarlo de ser así.
+Hasta ahora hemos estado usando una imagen de docker modificada con el protocolo de debugging habilitado.
+Dejar el debugging activado en una imagen en producción es considerado mala práctica, incluso si se mapea el puerto al exterior.
+Además,con los últimos cambios en los que utilizamos `--inspect-brk` nuestro programa se queda congelado y no arranca hasta que un debugger se conecta, lo cual lo hace totalmente inservible para producción.
+Esto nos obliga a editar y re-compilar la imagen cada vez que queremos hacer debugging o generar una imagen para producción, lo cual no es solo tedioso sino que además es tendente a errores.
+
+Una alternativa más práctica sería cambiar el modo en el que la imagen de docker arranca para hacerla más versátil. 
+Normalmente lo que hacemos es configurar la instrucción `CMD` de la imagen de docker para que ejecute un comando cuando se arranque, donde ese comando es nuestro programa.
+¿ Y si en lugar de lanzar nuestro programa directamente ejecutamos un script que lanza nuestro programa con distintos parámetros ? 
+En ese caso las posibilidades se amplían a lo que nuestra imaginación y habilidades como programadores nos permitan. 
+Dependiendo de lo que pretendamos que nuestro script haga debemos configurarlo en `CMD` o en `ENTRYPOINT`. 
+Dado que nuestros objetivos son modestos y pretendemos que el script sea simple vamos a limitarnos a utilizarlo con `CMD`.
+
+La tarea consistirá en escribir un script llamado `CMD.sh` en la raíz del repositorio que ejecute nuestro backend con el protocolo de debugging activado **o no** en base a alguna condición que podamos especificar a la hora de ejecutar la imagen. Yo os propongo el uso variable de entorno llamada `DEBUGGING` que pueda tomar los valores `yes` y `no`.
 
 * Debéis construir de nuevo la imagen de docker para que los cambios tengan efecto.
 * Después podéis ejecutar el mismo comando que en la lección anterior para probar la nueva imagen.
-* Si lo habéis hecho de forma correcta, deberíais ver en el log del contenedor que el debugger está a la escucha y deberíais poder conectar mediante el debugger de VSCode.
-
-# Solución
-
-El problema en este caso residía en la configuración de visual studio code. Faltaba la propiedad `remoteRoot`, la cual hemos omitido deshonestamente para generar un poco de diversión al lector.
-El propósito de esta propiedad es indicarle a VSCode dónde se encuentran los archivos sobre los que estamos haciendo debugging en el equipo remoto.
-Recordemos que, a efectos prácticos, cualquier contenedor de docker debe ser considerado como un equipo/ordenador/host distinto al nuestro.
-VSCode sabe dónde están nuestros archivos, pero no tiene ni idea de como mapear lo que el debugger remoto le está reportando puesto que lo hará con el path en el sistema de archivos remoto.
-Esta propiedad cambiará de una imagen a otra, y es necesario conocer bien cómo la imagen está construida y dónde se están emplazando dentro de la imagen.
-
-Por ejemplo, en nuestro caso podemos referirnos a nuestros path local mediante la propiedad especial `${workspaceFolder}`, por lo que tendremos la configuración local de este modo:
-`"localRoot": "${workspaceFolder}"`.
-Para saber como configurar correctamente la propiedad `remoteRoot` debemos analizar la imagen de docker, en particular la siguientes líneas
-
-```
-ENV USER dockerfileUser
-WORKDIR /home/$USER
-```
-
-Podemos ver que los archivos se están copiando en `/home/dockerfileUser`, por lo tanto esta es la información que le debemos dar a VSCode. 
-
-Si te resulta más sencillo piensa que el debugger remoto le dirá a VSCode
-> Hay un punto de interrupción en el archivo `/home/dockerfileUser/lib/index.js` en la línea 50
-
-Entonces VSCode deberá ser capaz de traducir ese path a `${workspaceFolder}/lib/index.js` o probablemente a `/Users/home/username/repo-name/lib/index.js`.
+* Si lo habéis hecho de forma correcta, deberíais ser capaces de arrancar un contenedor con el debugger activado o no cambiando los parámetros que se le pasen a la imagen.
 
 
 ## Commands reference
