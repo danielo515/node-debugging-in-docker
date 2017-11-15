@@ -3,15 +3,21 @@
   "version": "0.4.1",
   "description": "An example service embedded into a docker container to make debugging practices",
   "scripts": {
+    "build-socat": "docker build . -f socat.Dockerfile -t local/socat",
     "build": "cross-var docker build . -t $npm_package_config_imageName:$npm_package_version -t $npm_package_config_imageName:latest",
     "docker-push": "cross-var docker push $npm_package_config_imageName:$npm_package_version && docker push $npm_package_config_imageName:latest",
     "docker-start": "cross-var docker run -it --rm -p 3000:3000 -p 5858:5858 -e DEBUGGING=$DEBUGGING --name $npm_package_config_imageName $npm_package_config_imageName:latest",
     "docker-stop": "cross-var docker stop $npm_package_config_imageName",
+    "docker-debug-enable": "cross-var docker exec -it $npm_package_config_imageName bash -c 'kill -s SIGUSR1 $(pidof -s node)'",
     "deploy": "npm run build && npm run docker-push",
     "test": "lab -a code -t 100 -v",
     "test-cov-html": "lab -a code -r html -o coverage.html",
     "start": "node lib/start.js",
-    "start:dev": "nodemon --inspect lib/start.js"
+    "start:dev": "nodemon --inspect lib/start.js",
+    "socat-daemon": "cross-var docker run -d --name socat-nid --network=container:$npm_package_config_imageName local/socat socat TCP-LISTEN:4848,fork TCP:127.0.0.1:9229",
+    "socat-bridge": "cross-env APP_IP=$(docker inspect -f \"{{.NetworkSettings.IPAddress}}\" $npm_package_config_imageName) npm run _socat-bridge",
+    "_socat-bridge": "cross-var docker run -d -p 9229:9229 --name socat local/socat socat TCP-LISTEN:9229,fork TCP:${APP_IP}:4848",
+    "socat-kill": "docker stop socat socat-nid && docker rm socat socat-nid"
   },
   "main": "lib/start.js",
   "author": {
@@ -41,6 +47,7 @@
     "vision": "^4.1.1"
   },
   "devDependencies": {
+    "cross-env": "^5.1.1",
     "cross-var": "^1.0.3",
     "eslint": "^4.8.0",
     "eslint-config-hapi": "^10.1.0",

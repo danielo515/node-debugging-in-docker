@@ -3,51 +3,96 @@
 #### Created by: Danielo Rodríguez Rivero
 #### Keywords: rest,microservice, tutorial
 
-# Lección 04 - Configurable debugging
+# Lección 05 - Already running container
 
-Hasta ahora hemos estado usando una imagen de docker modificada con el protocolo de debugging habilitado.
-Dejar el debugging activado en una imagen en producción es considerado mala práctica, incluso si se mapea el puerto al exterior.
-Además,con los últimos cambios en los que utilizamos `--inspect-brk` nuestro programa se queda congelado y no arranca hasta que un debugger se conecta, lo cual lo hace totalmente inservible para producción.
-Esto nos obliga a editar y re-compilar la imagen cada vez que queremos hacer debugging o generar una imagen para producción, lo cual no es solo tedioso sino que además es tendente a errores.
+Hasta ahora hemos tenido la posibilidad de levantar y parar nuestros contenedores a placer con distintos parámetros y configuraciones.
+¿ Pero qué ocurre cuando no tenemos esta posibilidad ? Por ejemplo, un contenedor que lleva ya un tiempo en ejecución sin el protocolo de debug activado 
+y necesitamos analizar el comportamiento del código aún cuando no parece haber ningún error evidente, ¿Cómo podemos activar el protocolo de debugging sin recrear el contenedor y por tanto perder el estado que queremos analizar ?
 
-Una alternativa más práctica sería cambiar el modo en el que la imagen de docker arranca para hacerla más versátil. 
-Normalmente lo que hacemos es configurar la instrucción `CMD` de la imagen de docker para que ejecute un comando cuando se arranque, donde ese comando es nuestro programa.
-¿ Y si en lugar de lanzar nuestro programa directamente ejecutamos un script que lanza nuestro programa con distintos parámetros ? 
-En ese caso las posibilidades se amplían a lo que nuestra imaginación y habilidades como programadores nos permitan. 
-Dependiendo de lo que pretendamos que nuestro script haga debemos configurarlo en `CMD` o en `ENTRYPOINT`. 
-Dado que nuestros objetivos son modestos y pretendemos que el script sea simple vamos a limitarnos a utilizarlo con `CMD`.
-
-La tarea consistirá en escribir un script llamado `CMD.sh` en la raíz del repositorio que ejecute nuestro backend con el protocolo de debugging activado **o no** en base a alguna condición que podamos especificar a la hora de ejecutar la imagen. Yo os propongo el uso variable de entorno llamada `DEBUGGING` que pueda tomar los valores `yes` y `no`.
-
-* Debéis construir de nuevo la imagen de docker para que los cambios tengan efecto.
-* Después podéis ejecutar el mismo comando que en la lección anterior para probar la nueva imagen.
-* Si lo habéis hecho de forma correcta, deberíais ser capaces de arrancar un contenedor con el debugger activado o no cambiando los parámetros que se le pasen a la imagen.
+Al contrario que con las otras lecciones, está no tiene una solución evidente ni cae dentro de las habilidades típicas de un desarrollador de `node.js` por lo que no se propone como un ejercicio. 
+En su lugar se presenta como un pequeño manual/tutorial/referencia para resolver un problema que no debería ser habitual, pero que puede llegar a darse.
+Es por eso que este capítulo se compone tan solo de una rama en la que se presentan tanto el enunciado del problema como un pequeño tutorial de como afrontarlo.
 
 # Solución
 
-Igual que con cualquier otro problema de programación este ejercicio admitía varias soluciones.
-A continuación listo algunas posibles soluciones, todas ellas implican la ejecución de un script como punto de entrada a la imagen.
+La solución le resultará familiar a la mayoría de personas familiarizadas con unix: SIGNALING (señales de procesos)
+Afortunadamente node.js entiende algunas señales más allá de las típicas como pueden ser `SIGKILL`. 
+La que nos interesa en este caso es `SIGUSR1`, la cual le indica a un proceso de node en ejecución que active el protocolo de debugging , y todo esto en caliente sin necesidad de reiniciar el proceso ¡justo lo que queremos!
 
-* Script que en función de una variable de entorno ejecute (o no) nuestra aplicación en modo debug
-  * Se ejecutará a través de la opción `CMD` de la imagen de docker
-  * Este es el método que hemos elegido para resolverlo
-  * La ventajas de esta solución son:
-    * Proveer variables de entorno a un contenedor es muy fácil
-    * La mayoría de orquestadores (ej rancher) admiten configurar variables de entorno de forma sencilla
-    * Es muy fácil saltarse la ejecución del `CMD` con aquello que queramos
-* Script que en base a un parámetro ( o varios ) ejecute nuestra aplicación en modo debug
-    * Se puede lanzar mediante la instrucción `CMD` del Dockerfile
-    * La desventajas de este método son:
-      * es bastante más complicado pasar parámetros a una imagen
-      * corremos el riesgo de sobre-escribir el comando a ejecutar en lugar de pasarle un parámetro
-      * no sabemos si los distintos orquestadores admiten pasar parámetros a un contenedor
-* Script configurado como `ENTRYPOINT` que admita tanto parámetros como otros comandos a ejecutar
-    * Esta solución nos da control total de como se comporta nuestra imagen y es muy flexible
-    * No obstante, tiene varias desventajas a tener en cuenta:
-      * La complejidad del script es muy alta, puesto que tenemos que tener en cuenta muchas más opciones y posibilidades que nos pueden llegar como parámetro o variables de entorno
-      * Lo que se especifique en `CMD` es fácil de sobre-escribir en tiempo de ejecución, el `ENTRYPOINT` no
-      * Tenemos que calcular muy bien y de antemano todas las opciones que queramos permitir 
+Normalmente tendríamos que hacer un `ps -ef` para identificar a qué proceso de node debemos atacar, pero dado que nuestro contenedor de docker (dios los bendiga) es a efectos prácticos una máquina independiente, sólo existe un proceso corriendo que, casualmente (es broma, no es casual), es el nuestro. Por lo tanto, podemos usar un pequeño atajo para hacerlo todo con un único comando:
 
+```bash
+kill -s SIGUSR1 $(pidof -s node)
+```
+
+La forma de ejecutar esta instrucción variará según el entorno en el que nos encontremos. 
+Por ejemplo, en caso de que nuestro contenedor se esté ejecutando en rancher y no tenemos acceso al host en el que corre, la opción más cómoda es abrir una terminal en nuestro container a través de la interfaz web y ejecutar el comando arriba mencionado.
+Si tenemos acceso al host (ej, en nuestro equipo) podemos ejecutar la instrucción a través del demonio de docker sin necesidad de levantar una sesión interactiva:
+
+```bash
+docker exec -it <containerName> bash -c 'kill -s SIGUSR1 $(pidof -s node)'
+```
+
+donde `<containerName>` es el nombre o ID del contenedor objetivo.
+
+Para que no tengáis que copiar-pegar, ni tan siquiera pensar un poco, se provee un **script de npm** para ejecutar la citada instrucción. Ejecutad:
+
+```bash
+npm run docker-debug-enable
+```
+
+Si examinamos los logs del contenedor que contiene nuestra aplicación veremos un mensage de log indicando que el protocolo de debugging ha sido activado. **¡BIEN!**
+
+```
+Debugger listening on ws://127.0.0.1:9229/cf41999d-578e-47dc-8386-03ebf6d6ccfe
+For help see https://nodejs.org/en/docs/inspector
+Debugger attached.
+```
+
+Todo es felicidad, armonía y prosperidad, ahora solo resta conectarnos con VSCode y empezar a hacer debugging...
+
+![Fail image](/images/oops.png)
+
+Vaya, un error, ¡ que inesperado !
+
+Los lectores más avispados/despiertos se habrán dado cuenta de que varias cosas no cuadran en el mensaje de log en el que se nos notificaba que el protocolo de debugging se había activado:
+
+* El puerto **no es** el que nosotros esperábamos, sino el estándar para el protocolo `inspect` (9229)
+* Las IPs desde las que se permiten conexiones son `127.0.0.1`, es decir loopback, es decir localhost
+
+El primer problema tiene fácil solución, **cambiamos el puerto** al que atacamos **en nuestra configuración** y listo. Vamos a hacerlo, cambiad la configuración o cread una nueva apuntando al puerto `9229`.<br>
+El segundo en cambio, es un poco más duro de roer. Si las únicas conexiones permitidas son desde localhost tenemos un problema. 
+Recordemos que, a efectos prácticos, un contenedor de docker es como otra máquina **diferente a la nuestra**, entonces... ¿ cómo conectar de forma remota a un proceso que solo permite conexiones locales ?
+
+La solución a este segundo problema no es obvia, pero afortunadamente tampoco es complicada una vez que la entendemos.
+Existe una pequeña utilidad llamada `socat` (socket cat) que puede ayudarnos. Tal y como su nombre indica nos permite **concatenar** (cat) **sockets**. ¡ Justo lo que necesitamos !
+
+Al igual que , a efectos prácticos, un contenedor es una máquina remota, también tenemos a nuestra disposición algunos trucos únicos gracias a docker.
+Por ejemplo, podemos levantar un contenedor **en la misma red local** que otro contenedor, ¿veis por dónde vamos?
+
+Vamos a levantar un pequeño contenedor con la herramienta `socat` dentro, vamos a decirle a docker que lo queremos en la misma red que el contenedor de nuestra aplicación, y le diremos a `socat` que nos redirija lo que entre a través del puerto `X` a nuestro proceso de node en `localhost:9229`
+
+Si todo esto os resulta algo confuso con simples palabras, permitidme ilustrarlo con un esquema:
+
+![socat diagram](/images/socat.png)
+
+Para facilitar la vida al lector hemos incluido un dockerfile para generar una imagen con la herramienta `socat` instalada así como algunos scripts de npm para configurar el entorno que vamos a necesitar. Ejecutad los siguientes comandos:
+
+1. `npm run build-socat` para construir la imagen con `socat` a partir de `alpineLinux`
+1. `npm run socat-daemon` para levantar un contenedor con `socat` en la misma red que el contenedor con nuestra aplicación. Este será el encargado del port forwarding en la red destino
+1. `npm run socat-bridge` para levantar un contenedor de `socat` que hará de puente entre nuestra red y el demonio de `socat` encargado del port forwarding
+
+Tras ejecutar los anteriores comandos, los cuales os insto a analizar detenidamente y en detalle, ya deberíamos ser capaces de conectar con VSCode al debugger "remoto"
+
+:clap: :clap: ¡ VICTORIA ! :clap: :clap:
+
+## Bibliografía
+
+Este capítulo ha sido posible gracias a las instrucciones del siguiente tutorial:
+
+* https://codefresh.io/blog/debug_node_in_docker/
+
+En él se detallan algunas otras técnicas algo más avanzadas y algunos buenos consejos que quedan fuera del scope de este curso. Os recomiendo su lectura.
 
 ## Commands reference
 
